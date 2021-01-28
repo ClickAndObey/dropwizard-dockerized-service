@@ -1,2 +1,3 @@
-# dropwizard-dockerized-service
-Example dropwizard service that is dockerized, and easily loads up in to Intellij.
+# java-dockerized-service
+
+Example java webservice (dropwizard) that is dockerized, and easily loads up in to Intellij.
