@@ -30,3 +30,8 @@ build
 
 # IDEA Files
 .idea/
+
+# Makefile Targets
+docker-build-app
+docker-build-shared
+docker-build-test

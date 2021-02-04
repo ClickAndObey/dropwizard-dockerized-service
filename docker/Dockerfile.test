@@ -1,0 +1,5 @@
+FROM clickandobey-java-dockerized-webservice-shared as build-base
+
+WORKDIR /build_dir
+
+ENTRYPOINT ["gradle", "--no-daemon", "test"]
