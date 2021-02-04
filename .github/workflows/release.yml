@@ -12,7 +12,7 @@ jobs:
     - name: Lint Markdown
       run: |
         make lint-markdown
-  lintPython:
+  lintJava:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -33,15 +33,15 @@ jobs:
     - name: Integration Test
       run: |
         make integration-test-docker
-  runApi:
+  runWebservice:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Run API
+    - name: Run Webservice
       run: |
-        make docker-run-api
+        make docker-run-webservice
   performRelease:
-    needs: [lintMarkdown, lintPython, unitTest, integrationTest, runApi]
+    needs: [lintMarkdown, lintJava, unitTest, integrationTest, runWebservice]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

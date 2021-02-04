@@ -1,0 +1,9 @@
+FROM gradle:6.8.1-jdk15
+
+WORKDIR /build_dir
+
+COPY gradle /build_dir/gradle
+COPY gradlew /build_dir
+COPY settings.gradle /build_dir
+COPY build.gradle /build_dir
+COPY src /build_dir/src

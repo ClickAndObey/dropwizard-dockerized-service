@@ -10,6 +10,7 @@ SERVICE_NAME := java-dockerized-webservice
 
 PACKAGE_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-package
 
+SHARED_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-shared
 APP_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-app
 APP_PORT := 9001
 APP_CONTAINER_NAME := ${APP_IMAGE_NAME}
@@ -22,37 +23,66 @@ ROOT_DIRECTORY := `pwd`
 # Local App Targets
 
 run-webservice:
-	@${ROOT_DIRECTORY}/gradlew run
+	@gradle run
+
+# Shared Build Targets
+
+docker-build-shared: docker/Dockerfile.shared $(shell find src/main -name "*")
+	@docker build \
+		-t ${SHARED_IMAGE_NAME} \
+		-f docker/Dockerfile.shared \
+		.
+	@touch docker-build-shared
 
 # Docker App Targets
 
-docker-build-app:
-	@echo TODO: Implement Me!
+docker-build-app: docker-build-shared docker/app/Dockerfile.app docker/app/run_webservice.sh
+	@docker build \
+		-t ${APP_IMAGE_NAME} \
+		-f docker/app/Dockerfile.app \
+		.
+	@touch docker-build-app
 
-docker-run-webservice:
-	@echo TODO: Implement Me!
+docker-run-webservice: docker-build-app stop-webservice
+	@docker run \
+		--rm \
+		${DETACH} \
+		${INTERACTIVE} \
+		--env VERSION=${VERSION} \
+		--env ENVIRONMENT=docker \
+		--name ${APP_CONTAINER_NAME} \
+		-p ${APP_PORT}:9001 \
+		${APP_IMAGE_NAME}
 
 stop-webservice:
 	@docker kill ${APP_CONTAINER_NAME} || true
 
 # Testing
 
-build-test-docker:
-	@echo TODO: Implement Me!
+docker-build-test: docker-build-shared docker/Dockerfile.test $(shell find src/test -name "*")
+	@docker build \
+		-t $(TEST_IMAGE_NAME) \
+		-f docker/Dockerfile.test \
+		.
+	@touch docker-build-test
 
 test: unit-test integration-test
 test-docker: unit-test-docker integration-test-docker
 
 unit-test:
-	@echo TODO: Implement Me!
+	@gradle test
 
-unit-test-docker: build-test-docker
-	@echo TODO: Implement Me!
+unit-test-docker: docker-build-test
+	@docker run \
+		--rm \
+		${INTERACTIVE} \
+		--name ${TEST_CONTAINER_NAME} \
+		${TEST_IMAGE_NAME}
 
 integration-test: docker-run-webservice
 	@echo TODO: Implement Me!
 
-integration-test-docker: build-test-docker docker-run-webservice
+integration-test-docker: docker-build-test docker-run-webservice
 	@echo TODO: Implement Me!
 
 # Linting
@@ -77,7 +107,8 @@ clean:
 	@echo Cleaning Make Targets...
 	@rm -f package
 	@rm -f docker-build-app
-	@rm -f build-test-docker
+	@rm -f docker-build-shared
+	@rm -f docker-build-test
 	@echo Cleaned Make Targets.
 	@echo Removing Build Targets...
 	@echo Removed Build Targets.

@@ -7,8 +7,18 @@
  */
 
 plugins {
+    id 'java'
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    // Static Analyzer
+    id 'pmd'
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'java-dockerized-webservice',
+                   'Main-Class': 'clickandobey.dockerized.webservice.App'
+    }
 }
 
 repositories {
@@ -19,9 +29,6 @@ repositories {
 dependencies {
     // Use JUnit test framework.
     testImplementation 'junit:junit:4.13'
-
-    // This dependency is used by the application.
-    implementation 'com.google.guava:guava:29.0-jre'
 }
 
 application {
