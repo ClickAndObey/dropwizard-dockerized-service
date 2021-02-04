@@ -1,0 +1,39 @@
+name: Java Dockerized Webservice CI
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  lintMarkdown:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Lint Markdown
+      run: |
+        make lint-markdown
+  lintJava:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Lint Java
+      run: |
+        make lint-java
+  unitTest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Unit Test
+      run: |
+        make unit-test-docker
+  integrationTest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Integration Test
+      run: |
+        make integration-test-docker

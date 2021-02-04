@@ -1,0 +1,50 @@
+name: Java Dockerized Webservice Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  lintMarkdown:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Lint Markdown
+      run: |
+        make lint-markdown
+  lintPython:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Lint Java
+      run: |
+        make lint-java
+  unitTest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Unit Test
+      run: |
+        make unit-test-docker
+  integrationTest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Integration Test
+      run: |
+        make integration-test-docker
+  runApi:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run API
+      run: |
+        make docker-run-api
+  performRelease:
+    needs: [lintMarkdown, lintPython, unitTest, integrationTest, runApi]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Perform Release
+        run: |
+          make release VERSION=$(echo $GITHUB_REF | cut -d '/' -f 3)
