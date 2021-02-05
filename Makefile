@@ -16,10 +16,14 @@ APP_PORT := 9001
 ADMIN_PORT := 9002
 APP_CONTAINER_NAME := ${APP_IMAGE_NAME}
 
-TEST_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-test
-TEST_CONTAINER_NAME := ${TEST_IMAGE_NAME}
+INTEGRATION_TEST_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-integration-test
+INTEGRATION_TEST_CONTAINER_NAME := ${INTEGRATION_TEST_IMAGE_NAME}
+UNIT_TEST_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-unit-test
+UNIT_TEST_CONTAINER_NAME := ${UNIT_TEST_IMAGE_NAME}
 
 ROOT_DIRECTORY := `pwd`
+TEST_DIRECTORY := ${ROOT_DIRECTORY}/test
+TEST_PYTHON_DIRECTORY := $(TEST_DIRECTORY)/python
 
 ifneq ($(DEBUG),)
   INTERACTIVE=--interactive
@@ -67,16 +71,21 @@ docker-run-webservice: docker-build-app stop-webservice
 		-p ${APP_PORT}:9001 \
 		-p ${ADMIN_PORT}:9002 \
 		${APP_IMAGE_NAME}
+	@${ROOT_DIRECTORY}/test/scripts/wait_for_webapp ${APP_PORT}
 
 stop-webservice:
 	@docker kill ${APP_CONTAINER_NAME} || true
 
 # Testing
 
-docker-build-test: docker-build-shared docker/Dockerfile.test $(shell find src/test -name "*")
+docker-build-test: docker-build-shared docker/Dockerfile.test.unit docker-build-shared docker/Dockerfile.test.integration $(shell find src/test -name "*") $(shell find test/python -name "*")
 	@docker build \
-		-t $(TEST_IMAGE_NAME) \
-		-f docker/Dockerfile.test \
+		-t $(UNIT_TEST_IMAGE_NAME) \
+		-f docker/Dockerfile.test.unit \
+		.
+	@docker build \
+		-t $(INTEGRATION_TEST_IMAGE_NAME) \
+		-f docker/Dockerfile.test.integration \
 		.
 	@touch docker-build-test
 
@@ -90,14 +99,32 @@ unit-test-docker: docker-build-test
 	@docker run \
 		--rm \
 		${INTERACTIVE} \
-		--name ${TEST_CONTAINER_NAME} \
-		${TEST_IMAGE_NAME}
+		--name ${UNIT_TEST_CONTAINER_NAME} \
+		${UNIT_TEST_IMAGE_NAME}
 
-integration-test: docker-run-webservice
-	@echo TODO: Implement Me!
+integration-test: stop-webservice docker-run-webservice setup-test-env
+	@cd $(TEST_PYTHON_DIRECTORY); \
+	pipenv run python -m pytest \
+		--durations=10 \
+		${TEST_OUTPUT_FLAG} \
+		${FAILURE_FLAG} \
+		-m 'integration ${TEST_STRING}' \
+		.
 
-integration-test-docker: docker-build-test docker-run-webservice
-	@echo TODO: Implement Me!
+integration-test-docker: docker-build-test stop-webservice docker-run-webservice
+	@docker run \
+		--rm \
+		${INTERACTIVE} \
+		--env "ENVIRONMENT=docker" \
+		--name ${INTEGRATION_TEST_CONTAINER_NAME} \
+		--link ${APP_CONTAINER_NAME} \
+		${INTEGRATION_TEST_IMAGE_NAME} \
+			--durations=10 \
+			-x \
+			-s \
+			-m 'integration ${TEST_STRING}' \
+			${PDB} \
+			/test/python
 
 # Linting
 
@@ -126,3 +153,11 @@ clean:
 	@echo Cleaned Make Targets.
 	@echo Removing Build Targets...
 	@echo Removed Build Targets.
+
+setup-test-env:
+	@cd ${TEST_PYTHON_DIRECTORY}; \
+	pipenv install --dev
+
+update-python-dependencies:
+	@cd ${TEST_PYTHON_DIRECTORY}; \
+	pipenv lock
