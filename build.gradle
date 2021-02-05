@@ -12,12 +12,16 @@ plugins {
     id 'application'
     // Static Analyzer
     id 'pmd'
+    // Fat/Uber Jar
+    id "com.github.johnrengelman.shadow" version "6.1.0"
 }
+
+mainClassName = 'clickandobey.dockerized.webservice.HelloWorldApplication'
 
 jar {
     manifest {
         attributes 'Implementation-Title': 'java-dockerized-webservice',
-                   'Main-Class': 'clickandobey.dockerized.webservice.App'
+                   'Main-Class': mainClassName
     }
 }
 
@@ -27,11 +31,21 @@ repositories {
 }
 
 dependencies {
+    compile 'io.dropwizard:dropwizard-core:2.0.18'
+
     // Use JUnit test framework.
     testImplementation 'junit:junit:4.13'
 }
 
+shadowJar {
+    mergeServiceFiles()
+}
+
 application {
     // Define the main class for the application.
-    mainClass = 'clickandobey.dockerized.webservice.App'
+    mainClass = mainClassName
+}
+
+run {
+    args = ['server', "${project.getRootDir().path}/configuration/localhost/config.yaml"]
 }
