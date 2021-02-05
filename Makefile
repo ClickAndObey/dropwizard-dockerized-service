@@ -13,6 +13,7 @@ PACKAGE_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-package
 SHARED_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-shared
 APP_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-app
 APP_PORT := 9001
+ADMIN_PORT := 9002
 APP_CONTAINER_NAME := ${APP_IMAGE_NAME}
 
 TEST_IMAGE_NAME := ${ORGANIZATION}-${SERVICE_NAME}-test
@@ -31,6 +32,9 @@ else
 endif
 
 # Local App Targets
+
+build-webservice:
+	@gradle build -x test
 
 run-webservice:
 	@gradle run
@@ -61,6 +65,7 @@ docker-run-webservice: docker-build-app stop-webservice
 		--env ENVIRONMENT=docker \
 		--name ${APP_CONTAINER_NAME} \
 		-p ${APP_PORT}:9001 \
+		-p ${ADMIN_PORT}:9002 \
 		${APP_IMAGE_NAME}
 
 stop-webservice:
