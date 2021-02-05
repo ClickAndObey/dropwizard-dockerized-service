@@ -20,6 +20,16 @@ TEST_CONTAINER_NAME := ${TEST_IMAGE_NAME}
 
 ROOT_DIRECTORY := `pwd`
 
+ifneq ($(DEBUG),)
+  INTERACTIVE=--interactive
+  PDB=--pdb
+  DETACH=--env "DETACH=None"
+else
+  INTERACTIVE=--env "INTERACTIVE=None"
+  PDB=
+  DETACH=--detach
+endif
+
 # Local App Targets
 
 run-webservice:
@@ -48,7 +58,6 @@ docker-run-webservice: docker-build-app stop-webservice
 		--rm \
 		${DETACH} \
 		${INTERACTIVE} \
-		--env VERSION=${VERSION} \
 		--env ENVIRONMENT=docker \
 		--name ${APP_CONTAINER_NAME} \
 		-p ${APP_PORT}:9001 \
