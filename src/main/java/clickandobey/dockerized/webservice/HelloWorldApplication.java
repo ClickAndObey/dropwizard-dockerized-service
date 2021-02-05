@@ -5,8 +5,8 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-// import com.example.helloworld.resources.HelloWorldResource;
-// import com.example.helloworld.health.TemplateHealthCheck;
+import clickandobey.dockerized.webservice.resources.HelloWorldResource;
+import clickandobey.dockerized.webservice.health.HelloWorldHealthCheck;
 
 public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
 
@@ -29,7 +29,21 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
     @Override
     public void run(HelloWorldConfiguration configuration,
                     Environment environment) {
-        // nothing to do yet
+        addResources(configuration, environment);
+        addHealthChecks(configuration, environment);
+    }
+
+    private void addHealthChecks(HelloWorldConfiguration configuration,
+                                 Environment environment) {
+        final HelloWorldHealthCheck healthCheck =
+                new HelloWorldHealthCheck("hello");
+        environment.healthChecks().register("hello", healthCheck);
+    }
+
+    private void addResources(HelloWorldConfiguration configuration,
+                              Environment environment) {
+        final HelloWorldResource resource = new HelloWorldResource();
+        environment.jersey().register(resource);
     }
 
 }
