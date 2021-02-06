@@ -9,8 +9,11 @@ to ever run in to with general development.
 
 ## Gradle
 
-TODO: Implement Me!
+[Gradle](https://gradle.org/) is the build tool we use for the project. It has built-in "functions" to perform basic
+operations, but is extensible to perform what ever type of operation you might want.
 
 ## Dropwizard
 
-TODO: Implement Me!
+[DropWizard](https://www.dropwizard.io/en/latest/) is the java API we use for implementing the webservice. It uses
+resources to handle endpoints, and has built in configuration mechanics to help manage the administrative part of the
+service.

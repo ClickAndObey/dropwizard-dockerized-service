@@ -34,7 +34,8 @@ dependencies {
     compile 'io.dropwizard:dropwizard-core:2.0.18'
 
     // Use JUnit test framework.
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
 }
 
 shadowJar {
